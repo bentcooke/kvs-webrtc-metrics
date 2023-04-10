@@ -145,6 +145,10 @@
         </div>
 
         <div id="viewer" class="d-none">
+            <h3 id="logs-header">Webrtc Evaluation</h3>
+            <div class="card bg-light mb-3">
+                <div id="webrtc-evaluation"></div>
+            </div>
             <h2>Viewer</h2>
             <div class="row">
                 <div class="col">
@@ -153,7 +157,7 @@
                 </div>
                 <div class="col">
                     <h5>From Master</h5>
-                    <div class="video-container"><video class="remote-view" autoplay playsinline controls /></div>
+                    <div class="video-container"><video id="calc-stat-video" class="remote-view" autoplay playsinline controls /></div>
                 </div>
             </div>
             <div class="row datachannel">
@@ -176,6 +180,15 @@
             </div>
         </div>
 
+        <h3 id="logs-header">Webrtc Candidates</h3>
+        <div class="card bg-light mb-3">
+            <div class="stats-box"></div>
+        </div>
+        <h3 id="logs-header">Evaluation Debug</h3>
+        <div class="card bg-light mb-3">
+            <div id="stats"></div>
+        </div>
+
         <h3 id="logs-header">Logs</h3>
         <div class="card bg-light mb-3">
             <pre id="logs" class="card-body text-monospace preserve-whitespace"></pre>
@@ -186,7 +199,7 @@
 
 <div id="test"></div>
 
-<script src="../kvs-webrtc.js"></script>
+<script src="./kvs-webrtc.js"></script>
 <script src="./master.js"></script>
 <script src="./viewer.js"></script>
 <script src="./createSignalingChannel.js"></script>
