@@ -12,6 +12,8 @@
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.585.0.min.js"></script>
     <script src="https://unpkg.com/@ungap/url-search-params"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+
     <link rel="icon" type="image/png" href="favicon.ico">
 </head>
 <body>
@@ -145,9 +147,14 @@
         </div>
 
         <div id="viewer" class="d-none">
-            <h3 id="logs-header">Webrtc Evaluation</h3>
+            <h3 id="logs-header">WebRTC Stream Metrics (from Master)</h3>
             <div class="card bg-light mb-3">
                 <div id="webrtc-evaluation"></div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <canvas id="metricsChart" style="width:100%;max-width:700px"></canvas>
+                </div>
             </div>
             <h2>Viewer</h2>
             <div class="row">
@@ -180,11 +187,11 @@
             </div>
         </div>
 
-        <h3 id="logs-header">Webrtc Candidates</h3>
+        <h3 id="logs-header">WebRTC ICE Candidates</h3>
         <div class="card bg-light mb-3">
             <div class="stats-box"></div>
         </div>
-        <h3 id="logs-header">Evaluation Debug</h3>
+        <h3 id="logs-header">Metrics Debug</h3>
         <div class="card bg-light mb-3">
             <div id="stats"></div>
         </div>
