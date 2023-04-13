@@ -275,16 +275,16 @@ function calculateStats() {
     var decodedFrames = 0,
             droppedFrames = 0,
             decodedAudioBytes = 0;
-            startTime = new Date().getTime(),
+            statStartTime = 0,
             initialTime = new Date().getTime();
 
     var initialDate = new Date();
-    var statstartDate = 0;
     var currentDate = new Date();
     var previousDate = new Date();
 
     var decodedFPSArray = [];
     var droppedFramePerArray = [];
+    var audioRateArray = [];
     var timeArray = [];
 
     //Results Param
@@ -292,38 +292,54 @@ function calculateStats() {
     var two_min_avg_fps = 0;
     var two_min_avg_kbps = 0;
     var two_min_avg_fd = 0
-    var int_communication_time = 0;
-    
+        
     const isVideoPlaying = video => !!(video.currentTime > 0 && !video.paused && !video.ended && video.readyState > 2);
     
-    const chart = new Chart("metricsChart", {
-        type: "line",
+    const chart = new Chart('metricsChart', {
+        type: 'line',
         data: {
                 labels: timeArray,
                 datasets: [{
                     label: 'Decoded FPS',
-                    borderColor: "blue",
+                    borderColor: 'blue',
+                    backgroundColor: 'blue',
                     fill: false,
                     data: decodedFPSArray
                 },{
                     label: 'Frames Dropped (%)',
-                    borderColor: "red",
+                    borderColor: 'red',
+                    backgroundColor: 'red',
                     fill: false,
                     data: droppedFramePerArray
+                },{
+                    label: 'Audio kbps',
+                    borderColor: 'orange',
+                    backgroundColor: 'orange',
+                    fill: false,
+                    data: audioRateArray
                 }]
             },
             options:{
+                responsive: true,
                 plugins: {
-                    legend: {position: top}
+                    title: {
+                        display: true,
+                        text: 'Stream from Master'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
       });
+
 
     chart.reset();
 
     calcInteval = window.setInterval(function(){
 
         //save the current values
+        currentDate = new Date();
         var cur_webkitDecodedFrameCount = video.webkitDecodedFrameCount;
         var cur_webkitDroppedFrameCount = video.webkitDroppedFrameCount;
         var cur_webkitAudioDecodedByteCount = video.webkitAudioDecodedByteCount;
@@ -336,12 +352,17 @@ function calculateStats() {
         } else if ((cur_webkitDecodedFrameCount > 0) || (cur_webkitAudioDecodedByteCount> 0)){
         // } else if (isVideoPlaying) {
 
-            if (statstartDate == 0) { statstartDate = new Date(); };
-
-            currentDate = new Date();
             var currentTime = currentDate.getTime();
-            var deltaTime = (currentTime - startTime) / 1000;
-            var totalTime = (currentTime - initialTime) / 1000;
+            var previousTime = previousDate.getTime();
+            var deltaTime = (currentTime - previousTime) / 1000;
+            var totalTime = (currentTime - statStartTime) / 1000;
+
+            if (statStartTime == 0) { 
+                statStartTime = currentTime;
+                console.log("Measuring stream stats.");
+            };  //timestamp start of decoded frames
+
+            var int_statRunTime = parseInt(calcDiffTimestamp2Sec(currentTime, statStartTime));
 
             // Calculate decoded audio bytes per sec.
             var currentDecodedAudiokbps  = ((cur_webkitAudioDecodedByteCount - decodedAudioBytes) * 8) / (deltaTime * 1000);
@@ -362,44 +383,44 @@ function calculateStats() {
             var avgDropPercent = (cur_webkitDroppedFrameCount / (cur_webkitDroppedFrameCount + cur_webkitDecodedFrameCount)) * 100;
             var curDropPercent = (currentDroppedFPS / (currentDroppedFPS + currentDecodedFPS)) * 100;
             
-            var communication_time = calcDiffTimestamp2Sec(currentTime, statstartDate.getTime());
-            int_communication_time = parseInt(communication_time);
-            var html_str = "<table><tr><th>STATS</th></tr>" +
-            "<tr><td>VIEWER Start:</td><td>" + viewer_button_pressed + "</td></tr>" +
-            "<tr><td>TRACK Start :</td><td>" + initialDate + "</td></tr>" +
-            "<tr><td>Run Time(Sec):</td><td>" + int_communication_time + "</td></tr>" +
+
+            var html_str = "<table><tr><th>LIVE STATS</th></tr>" +
+            "<tr><td></td><td>VIEWER Start:</td><td>" + viewer_button_pressed + "</td></tr>" +
+            "<tr><td></td><td>TRACK Start:</td><td>" + initialDate + "</td></tr>" +
+            "<tr><td></td><td>Run Time(sec):</td><td>" + int_statRunTime + "</td></tr>" +
             "<tr><td>VIDEO:</td></tr>" +
-            "<tr><td></td><td>Video Resolution:</td><td>" + video.videoWidth + " x " + video.videoHeight + "</td></tr>" +
-            "<tr><td></td><td>Avg Frames Per Second:</td><td>" + decodedFPSavg.toFixed(2) + "</td></tr>" +
+            "<tr><td></td><td>Resolution:</td><td>" + video.videoWidth + " x " + video.videoHeight + "</td></tr>" +
+            "<tr><td></td><td>Avg FPS:</td><td>" + decodedFPSavg.toFixed(2) + "</td></tr>" +
             "<tr><td></td><td>Avg Frame Drop %:</td><td>" + avgDropPercent.toFixed(2) + "</td></tr>" +
-            "<tr><td></td><td>Current Frames Per Second:</td><td>" + currentDecodedFPS.toFixed(2) + "</td></tr>" +
+            "<tr><td></td><td>Current FPS:</td><td>" + currentDecodedFPS.toFixed(2) + "</td></tr>" +
             "<tr><td></td><td>Current Frame Drop %:</td><td>" + curDropPercent.toFixed(2) + "</td></tr>" +
             "<tr><td>AUDIO:</td></tr>" +
             "<tr><td></td><td>Avg Audio kbps:</td><td>" + decodedAudiokbpsAvg.toFixed(2) + "</td></tr>" +
             "<tr><td></td><td>Current Audio kbps:</td><td>" + currentDecodedAudiokbps.toFixed(2) + "</td></tr></table>" +
-            "<table><tr><th>Test Results - 2min Avg</th></tr>" +
-            "<tr><td>Time to P2P Connection(SEC):</td><td>" + connection_time + "</td></tr>" +
-            "<tr><td>Time to decoded frames(SEC):</td><td>" + (calcDiffTimestamp2Sec(statstartDate.getTime(), viewer_button_pressed.getTime())) + "</td></tr></table>";
-            if( int_communication_time == 120 ) {
+            "<table><tr><th>Test Results - 2min Average</th></tr>" +
+            "<tr><td>Time to P2P Connection(sec):</td><td>" + connection_time + "</td></tr>" +
+            "<tr><td>Time to decoded frames(sec):</td><td>" + (calcDiffTimestamp2Sec(statStartTime, viewer_button_pressed.getTime())) + "</td></tr></table>";
+            if( int_statRunTime == 120 ) {
                 two_min_avg_fps = decodedFPSavg.toFixed(2);
                 two_min_avg_kbps = decodedAudiokbpsAvg.toFixed(2);
                 two_min_avg_fd = avgDropPercent.toFixed(2);
             }
-            if( int_communication_time >= 120 ) {
+            if( int_statRunTime >= 120 ) {
                 html_str = html_str + 
-                "<table><tr><td>Average Video FPS:</td><td>" + two_min_avg_fps + "</td></tr>" +
-                "<tr><td>Avg Frame Drop %:</td><td>" + two_min_avg_fd + "</td></tr>" +
-                "<tr><td>Average Audio kbps:</td><td>" + two_min_avg_kbps + "</td></tr></table>";
+                "<table><tr><td></td><td>Average Video FPS:</td><td>" + two_min_avg_fps + "</td></tr>" +
+                "<tr><td></td><td>Avg Frame Drop %:</td><td>" + two_min_avg_fd + "</td></tr>" +
+                "<tr><td></td><td>Average Audio kbps:</td><td>" + two_min_avg_kbps + "</td></tr></table>";
             } else {
                 
                 //push data to chart while avg test is running
                 decodedFPSArray.push(currentDecodedFPS);
                 droppedFramePerArray.push(curDropPercent);
-                timeArray.push(int_communication_time);
+                audioRateArray.push(currentDecodedAudiokbps);
+                timeArray.push(int_statRunTime);
                 chart.update();
                 
                 html_str = html_str + 
-                "<table><tr><td>RESULTS READY IN " + (120 - int_communication_time) + " sec...</td></tr></table>";
+                "<table><tr><td></td><td><th>REMAINING RESULTS READY IN " + (120 - int_statRunTime) + " sec...</th></td></tr></table>";
 
             }
 
@@ -416,7 +437,7 @@ function calculateStats() {
                     "<tr><td>TRACK Start:</td><td>" + initialTime + "</td></tr>" +
                     "<tr><td>Curr  Date</td><td>" + currentDate + "</td></tr>" +
                     "<tr><td>Curr  Time</td><td>" + currentTime + "</td></tr>" +
-                    "<tr><td>Prev  Time</td><td>" + startTime + "</td></tr>" +
+                    "<tr><td>Prev  Time</td><td>" + previousTime + "</td></tr>" +
                     "<tr><td>Prev  Date</td><td>" + previousDate + "</td></tr></table>" +
                     "<table><tr><th>Type</th><th>Total</th><th>Avg</th><th>Current</th></tr>" +
                     "<tr><td>Decoded</td><td>" + decodedFrames + "</td><td>" + decodedFPSavg.toFixed() + "</td><td>" + currentDecodedFPS.toFixed()+ "</td></tr>" +
@@ -424,14 +445,14 @@ function calculateStats() {
                     "<tr><td>All</td><td>" + (decodedFrames + droppedFrames) + "</td><td>" + (decodedFPSavg + droppedFPSavg).toFixed() + "</td><td>" + (currentDecodedFPS + currentDroppedFPS).toFixed() + "</td></tr></table>" +
                     "Video Resolution: " + video.videoWidth + " x " + video.videoHeight; 
 
-            startTime = currentTime; 
             previousDate = currentDate;
+
         } else {
             var html_str = "<table><tr><th>WAITING FOR STREAM STATS...</th></tr></table>"
             //write the results to a table
             $("#webrtc-evaluation")[0].innerHTML =html_str; 
             console.log("Waiting for stream stats...");
-            startTime = currentTime;
+
             previousDate = currentDate;
             return;
         }

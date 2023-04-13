@@ -12,7 +12,7 @@
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.585.0.min.js"></script>
     <script src="https://unpkg.com/@ungap/url-search-params"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link rel="icon" type="image/png" href="favicon.ico">
 </head>
@@ -151,10 +151,8 @@
             <div class="card bg-light mb-3">
                 <div id="webrtc-evaluation"></div>
             </div>
-            <div class="row">
-                <div class="col">
-                    <canvas id="metricsChart" style="width:100%;max-width:700px"></canvas>
-                </div>
+            <div class="card bg-light mb-3">
+                <canvas id="metricsChart" style="width:100%;max-height:400px"></canvas>
             </div>
             <h2>Viewer</h2>
             <div class="row">
