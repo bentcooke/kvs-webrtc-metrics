@@ -12,6 +12,13 @@ async function startViewer(localView, remoteView, formValues, onStatsReport, onR
     viewer_button_pressed = new Date();
     console.log('[WebRTC] METRICS TEST STARTED: ', viewer_button_pressed);
 
+    var html_str = "<table><tr><th>Connecting to MASTER...</th></tr></table>";
+    //write the results to a table
+    $("#webrtc-test")[0].innerHTML =html_str; 
+
+    html_str = " ";
+    $("#webrtc-live-stats")[0].innerHTML =html_str; 
+
     // Create KVS client
     console.log("[startViewer] endpoint: ", formValues.endpoint);
     const kinesisVideoClient = new AWS.KinesisVideo({
@@ -321,13 +328,10 @@ function calculateStats() {
             },
             options:{
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Stream from Master'
-                    },
                     legend: {
-                        position: 'bottom'
+                        position: 'botttom'
                     }
                 }
             }
@@ -383,21 +387,7 @@ function calculateStats() {
             var avgDropPercent = (cur_webkitDroppedFrameCount / (cur_webkitDroppedFrameCount + cur_webkitDecodedFrameCount)) * 100;
             var curDropPercent = (currentDroppedFPS / (currentDroppedFPS + currentDecodedFPS)) * 100;
             
-
-            var html_str = "<table><tr><th>LIVE STATS</th></tr>" +
-            "<tr><td></td><td>VIEWER Start:</td><td>" + viewer_button_pressed + "</td></tr>" +
-            "<tr><td></td><td>TRACK Start:</td><td>" + initialDate + "</td></tr>" +
-            "<tr><td></td><td>Run Time(sec):</td><td>" + int_statRunTime + "</td></tr>" +
-            "<tr><td>VIDEO:</td></tr>" +
-            "<tr><td></td><td>Resolution:</td><td>" + video.videoWidth + " x " + video.videoHeight + "</td></tr>" +
-            "<tr><td></td><td>Avg FPS:</td><td>" + decodedFPSavg.toFixed(2) + "</td></tr>" +
-            "<tr><td></td><td>Avg Frame Drop %:</td><td>" + avgDropPercent.toFixed(2) + "</td></tr>" +
-            "<tr><td></td><td>Current FPS:</td><td>" + currentDecodedFPS.toFixed(2) + "</td></tr>" +
-            "<tr><td></td><td>Current Frame Drop %:</td><td>" + curDropPercent.toFixed(2) + "</td></tr>" +
-            "<tr><td>AUDIO:</td></tr>" +
-            "<tr><td></td><td>Avg Audio kbps:</td><td>" + decodedAudiokbpsAvg.toFixed(2) + "</td></tr>" +
-            "<tr><td></td><td>Current Audio kbps:</td><td>" + currentDecodedAudiokbps.toFixed(2) + "</td></tr></table>" +
-            "<table><tr><th>Test Results - 2min Average</th></tr>" +
+            var html_str = "<table><tr><th>TWO MIN TEST - <FONT COLOR=RED>RESULTS READY IN: " + (120 - int_statRunTime) + " sec</FONT></th></tr>" +
             "<tr><td>Time to P2P Connection(sec):</td><td>" + connection_time + "</td></tr>" +
             "<tr><td>Time to decoded frames(sec):</td><td>" + (calcDiffTimestamp2Sec(statStartTime, viewer_button_pressed.getTime())) + "</td></tr></table>";
             if( int_statRunTime == 120 ) {
@@ -406,10 +396,12 @@ function calculateStats() {
                 two_min_avg_fd = avgDropPercent.toFixed(2);
             }
             if( int_statRunTime >= 120 ) {
-                html_str = html_str + 
+                html_str = "<table><tr><th>TWO MIN TEST COMPLETE - RESULTS:</th></tr>" +
+                "<tr><td>Time to P2P Connection(sec):</td><td>" + connection_time + "</td></tr>" +
+                "<tr><td>Time to decoded frames(sec):</td><td>" + (calcDiffTimestamp2Sec(statStartTime, viewer_button_pressed.getTime())) + "</td></tr></table>" +
                 "<table><tr><td></td><td>Average Video FPS:</td><td>" + two_min_avg_fps + "</td></tr>" +
                 "<tr><td></td><td>Avg Frame Drop %:</td><td>" + two_min_avg_fd + "</td></tr>" +
-                "<tr><td></td><td>Average Audio kbps:</td><td>" + two_min_avg_kbps + "</td></tr></table>";
+                "<tr><td></td><td>Average Audio kbps:</td><td>" + two_min_avg_kbps + "</td></tr><tr></tr></table>";
             } else {
                 
                 //push data to chart while avg test is running
@@ -419,13 +411,26 @@ function calculateStats() {
                 timeArray.push(int_statRunTime);
                 chart.update();
                 
-                html_str = html_str + 
-                "<table><tr><td></td><td><th>REMAINING RESULTS READY IN " + (120 - int_statRunTime) + " sec...</th></td></tr></table>";
-
             }
 
+            $("#webrtc-test")[0].innerHTML =html_str; 
+
+            html_str = "<br><table><tr></tr><tr><th>LIVE STATS</th></tr>" +
+            "<tr><td>VIEWER Start:</td><td>" + viewer_button_pressed.toISOString() + "</td></tr>" +
+            "<tr><td>TRACK Start:</td><td>" + initialDate.toISOString() + "</td></tr>" +
+            "<tr><td>Connection Time(sec):</td><td>" + int_statRunTime + "</td></tr>" +
+            "<tr><td>VIDEO:</td></tr>" +
+            "<tr><td>Resolution:</td><td>" + video.videoWidth + " x " + video.videoHeight + "</td></tr>" +
+            "<tr><td>Avg FPS:</td><td>" + decodedFPSavg.toFixed(2) + "</td></tr>" +
+            "<tr><td>Avg Frame Drop %:</td><td>" + avgDropPercent.toFixed(2) + "</td></tr>" +
+            "<tr><td>Current FPS:</td><td>" + currentDecodedFPS.toFixed(2) + "</td></tr>" +
+            "<tr><td>Current Frame Drop %:</td><td>" + curDropPercent.toFixed(2) + "</td></tr>" +
+            "<tr><td>AUDIO:</td></tr>" +
+            "<tr><td>Avg Audio kbps:</td><td>" + decodedAudiokbpsAvg.toFixed(2) + "</td></tr>" +
+            "<tr><td>Current Audio kbps:</td><td>" + currentDecodedAudiokbps.toFixed(2) + "</td></tr></table>";
+
             //write the results to a table
-            $("#webrtc-evaluation")[0].innerHTML =html_str; 
+            $("#webrtc-live-stats")[0].innerHTML =html_str; 
 
             //write the results to a table
             $("#stats")[0].innerHTML =
@@ -450,7 +455,7 @@ function calculateStats() {
         } else {
             var html_str = "<table><tr><th>WAITING FOR STREAM STATS...</th></tr></table>"
             //write the results to a table
-            $("#webrtc-evaluation")[0].innerHTML =html_str; 
+            $("#webrtc-test")[0].innerHTML =html_str; 
             console.log("Waiting for stream stats...");
 
             previousDate = currentDate;

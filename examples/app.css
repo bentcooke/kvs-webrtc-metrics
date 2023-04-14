@@ -2,8 +2,8 @@
     background: black;
     display: inline-block;
     line-height: 0;
-    max-width: 100%;
-    width: 100%;
+    width: 100%    !important;
+    height: auto   !important;
 }
 
 canvas{
@@ -17,6 +17,11 @@ canvas{
 
 .preserve-whitespace {
     white-space: pre-wrap;
+}
+
+.sticky {
+    position: sticky;
+    top: 0;
 }
 
 video {
