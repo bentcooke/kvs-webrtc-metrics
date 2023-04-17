@@ -331,7 +331,7 @@ function calculateStats() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'botttom'
+                        position: 'top'
                     }
                 }
             }
